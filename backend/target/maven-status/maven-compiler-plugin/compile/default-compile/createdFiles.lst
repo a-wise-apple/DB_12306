@@ -1,0 +1,13 @@
+com\example\railway\domain\Train.class
+com\example\railway\domain\ScheduleStop.class
+com\example\railway\domain\enumeration\PaymentStatus.class
+com\example\railway\RailwayBookingApplication.class
+com\example\railway\domain\enumeration\CheckinType.class
+com\example\railway\domain\enumeration\OrderStatus.class
+com\example\railway\domain\Coach.class
+com\example\railway\domain\enumeration\SeatAllocationStatus.class
+com\example\railway\domain\Station.class
+com\example\railway\domain\TrainSchedule.class
+com\example\railway\domain\enumeration\ScheduleStatus.class
+com\example\railway\domain\enumeration\TicketStatus.class
+com\example\railway\domain\enumeration\UserRole.class
