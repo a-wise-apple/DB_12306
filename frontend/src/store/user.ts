@@ -62,7 +62,7 @@ export const useUserStore = defineStore('user', () => {
         id: userId,
         name: response.username,
         role: response.role
-      })
+      }
       return true
     } catch (error) {
       console.error(error)

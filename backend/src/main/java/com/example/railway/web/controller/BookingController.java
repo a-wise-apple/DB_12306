@@ -36,10 +36,13 @@ public class BookingController {
     
     @PostMapping("/reserve")
     public ResponseEntity<BookingOrder> reserveSeats(@Valid @RequestBody ReserveSeatsRequest request) {
-        // TODO: Implement full reservation logic (check availability, lock seats, create order)
-        // For now, just create an empty order
+        UserAccount user = userService.findById(request.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
         BookingOrder order = new BookingOrder();
-        // Set user, etc.
+        order.setUser(user);
+        order.setTotalAmount(java.math.BigDecimal.ZERO);
+        
         return ResponseEntity.ok(bookingService.createOrder(order));
     }
 
