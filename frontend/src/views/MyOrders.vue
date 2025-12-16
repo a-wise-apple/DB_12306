@@ -3,36 +3,36 @@
     <el-card class="box-card">
       <template #header>
         <div class="card-header">
-          <span>My Orders</span>
+          <span>{{ copy.title }}</span>
         </div>
       </template>
-      
+
       <el-table :data="orders" style="width: 100%">
-        <el-table-column prop="id" label="Order ID" width="100" />
-        <el-table-column prop="status" label="Status" width="120">
+        <el-table-column prop="id" :label="copy.orderId" width="100" />
+        <el-table-column prop="status" :label="copy.status" width="120">
           <template #default="scope">
             <el-tag :type="getStatusType(scope.row.status)">{{ scope.row.status }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="totalAmount" label="Amount" width="120" />
-        <el-table-column prop="createdAt" label="Created At" />
-        <el-table-column label="Actions">
+        <el-table-column prop="totalAmount" :label="copy.amount" width="120" />
+        <el-table-column prop="createdAt" :label="copy.created" />
+        <el-table-column :label="copy.actions">
           <template #default="scope">
-            <el-button 
+            <el-button
               v-if="scope.row.status === 'PENDING' || scope.row.status === 'PAID'"
-              size="small" 
-              type="danger" 
+              size="small"
+              type="danger"
               @click="handleCancel(scope.row.id)"
             >
-              Cancel
+              {{ copy.cancel }}
             </el-button>
-            <el-button 
+            <el-button
               v-if="scope.row.status === 'PAID'"
-              size="small" 
-              type="warning" 
+              size="small"
+              type="warning"
               @click="handleSell(scope.row.id)"
             >
-              Sell
+              {{ copy.sell }}
             </el-button>
           </template>
         </el-table-column>
@@ -42,14 +42,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { getUserBookings, cancelBooking } from '../api/booking'
 import { createListing } from '../api/trading'
 import { useUserStore } from '../store/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { useI18n } from '../locales'
 
 const userStore = useUserStore()
 const orders = ref<any[]>([])
+const { locale } = useI18n()
+const copy = computed(() => locale.value.orders)
 
 onMounted(async () => {
   if (userStore.user?.id) {
@@ -72,43 +75,42 @@ const getStatusType = (status: string) => {
 
 const handleCancel = (orderId: number) => {
   ElMessageBox.confirm(
-    'Are you sure you want to cancel this order?',
-    'Warning',
+    copy.value.cancelConfirm,
+    copy.value.warn,
     {
-      confirmButtonText: 'Yes',
-      cancelButtonText: 'No',
+      confirmButtonText: copy.value.yes,
+      cancelButtonText: copy.value.no,
       type: 'warning',
     }
   ).then(async () => {
     try {
       await cancelBooking(orderId)
-      ElMessage.success('Order cancelled')
-      // Refresh list
+      ElMessage.success(copy.value.cancelled)
       if (userStore.user?.id) {
         orders.value = await getUserBookings(userStore.user.id)
       }
     } catch (error) {
       console.error(error)
-      ElMessage.error('Failed to cancel order')
+      ElMessage.error(copy.value.cancelFailed)
     }
   })
 }
 
 const handleSell = (orderId: number) => {
-  ElMessageBox.prompt('Please enter the selling price', 'Sell Ticket', {
-    confirmButtonText: 'List for Sale',
-    cancelButtonText: 'Cancel',
+  ElMessageBox.prompt(copy.value.sellPrompt, copy.value.sellTitle, {
+    confirmButtonText: copy.value.sellAction,
+    cancelButtonText: copy.value.sellCancel,
     inputPattern: /^\d+(\.\d{1,2})?$/,
-    inputErrorMessage: 'Invalid Price',
+    inputErrorMessage: copy.value.priceError,
   }).then(async ({ value }) => {
     try {
       if (userStore.user?.id) {
         await createListing(userStore.user.id, orderId, parseFloat(value))
-        ElMessage.success('Ticket listed for sale successfully')
+        ElMessage.success(copy.value.sellSuccess)
       }
     } catch (error) {
       console.error(error)
-      ElMessage.error('Failed to list ticket')
+      ElMessage.error(copy.value.sellFailed)
     }
   })
 }
@@ -117,5 +119,14 @@ const handleSell = (orderId: number) => {
 <style scoped>
 .my-orders {
   padding: 20px;
+  color: var(--text-primary);
+}
+.box-card {
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+}
+.card-header {
+  color: var(--text-primary);
+  font-weight: 700;
 }
 </style>

@@ -161,16 +161,20 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useUserStore } from '../store/user'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { useI18n } from '../locales'
 
 const userStore = useUserStore()
 const router = useRouter()
+const { t, locale } = useI18n()
+const copy = computed(() => locale.value.home)
 
 const handleLogout = () => {
   userStore.logout()
-  ElMessage.success('Logged out')
+  ElMessage.success(t('home.loggedOut'))
   router.push('/login')
 }
 </script>
