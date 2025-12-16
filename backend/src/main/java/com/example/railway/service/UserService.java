@@ -27,6 +27,11 @@ public class UserService {
         return userAccountRepository.findById(id);
     }
 
+    public boolean existsByIdNumberOrPhone(String idNumber, String phone) {
+        return userAccountRepository.findByIdNumber(idNumber).isPresent()
+            || userAccountRepository.findByPhone(phone).isPresent();
+    }
+
     public UserAccount register(UserAccount user) {
         // In a real app, we would hash the password here
         return userAccountRepository.save(user);

@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { login as loginApi } from '../api/auth'
-import type { LoginRequest, User } from '../api/types'
+import { login as loginApi, register as registerApi } from '../api/auth'
+import type { LoginRequest, RegisterRequest, User } from '../api/types'
 
 export const useUserStore = defineStore('user', () => {
   const token = ref(localStorage.getItem('token') || '')
@@ -20,6 +20,18 @@ export const useUserStore = defineStore('user', () => {
   }
 
   const isAuthenticated = computed(() => !!token.value)
+
+  const setSession = (payload: { token: string; id: number; name: string; role: string }) => {
+    token.value = payload.token
+    user.value = {
+      id: payload.id,
+      name: payload.name,
+      role: payload.role
+    }
+
+    localStorage.setItem('token', payload.token)
+    localStorage.setItem('user', JSON.stringify(user.value))
+  }
 
   const login = async (data: LoginRequest) => {
     try {
@@ -50,13 +62,27 @@ export const useUserStore = defineStore('user', () => {
         id: userId,
         name: response.username,
         role: response.role
-      }
-      
-      localStorage.setItem('user', JSON.stringify(user.value))
+      })
       return true
     } catch (error) {
       console.error(error)
       return false
+    }
+  }
+
+  const register = async (data: RegisterRequest) => {
+    try {
+      const response = await registerApi(data)
+      setSession({
+        token: response.token,
+        id: response.userId,
+        name: response.username,
+        role: response.role
+      })
+      return { success: true }
+    } catch (error: any) {
+      const status = error?.response?.status
+      return { success: false, conflict: status === 409 }
     }
   }
 
@@ -72,6 +98,7 @@ export const useUserStore = defineStore('user', () => {
     user,
     isAuthenticated,
     login,
+    register,
     logout
   }
 })

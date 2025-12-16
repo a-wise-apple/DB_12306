@@ -56,6 +56,8 @@ const onSubmit = async () => {
     ElMessage.error(copy.value.failed)
   }
 }
+
+const goRegister = () => router.push('/register')
 </script>
 
 <style scoped>
