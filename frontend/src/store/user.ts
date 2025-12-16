@@ -43,7 +43,7 @@ export const useUserStore = defineStore('user', () => {
       
       // Since I cannot update backend right now easily without context switch, 
       // I will parse the mock token "mock-token-{id}"
-      const idPart = response.token.split('-')[2]
+      const idPart = response.token.split('-')[2] ?? '0'
       const userId = parseInt(idPart) || 0
       
       user.value = {
