@@ -3,25 +3,30 @@
     <el-card class="box-card">
       <template #header>
         <div class="card-header">
-          <span>Select Seats</span>
-          <el-button class="button" text @click="$router.back()">Back</el-button>
+          <span>{{ copy.title }}</span>
+          <el-button class="button" text @click="$router.back()">{{ copy.back }}</el-button>
         </div>
       </template>
-      
-      <div v-if="loading" class="loading">Loading seats...</div>
-      
+
+      <div v-if="loading" class="loading">{{ copy.loading }}</div>
+
       <div v-else class="coach-container">
+        <div class="legend">{{ copy.selectHint }}</div>
         <div v-for="(seats, coachNo) in seatsByCoach" :key="coachNo" class="coach-section">
-          <h3>Coach {{ coachNo }} ({{ seats[0]?.seat.coach.coachType }})</h3>
+          <h3>车厢 {{ coachNo }} ({{ seats[0]?.seat.coach.coachType }})</h3>
           <div class="seats-grid">
-            <div 
-              v-for="allocation in seats" 
-              :key="allocation.id" 
+            <div
+              v-for="allocation in seats"
+              :key="allocation.id"
               class="seat-item"
-              :class="{ 
-                'available': allocation.status === 'AVAILABLE',
-                'selected': isSelected(allocation.seat.id)
+              :class="{
+                available: allocation.status === 'AVAILABLE',
+                selected: isSelected(allocation.seat.id),
+                locked: allocation.status === 'LOCKED',
+                reserved: allocation.status === 'RESERVED',
+                sold: allocation.status === 'SOLD'
               }"
+              :title="seatStatusLabel(allocation)"
               @click="toggleSeat(allocation)"
             >
               {{ allocation.seat.seatNo }}
@@ -34,20 +39,20 @@
     <el-card class="box-card passenger-info" v-if="selectedSeats.length > 0">
       <template #header>
         <div class="card-header">
-          <span>Passenger Information</span>
+          <span>{{ copy.passengerInfo }}</span>
         </div>
       </template>
-      
+
       <el-form label-width="120px">
-        <div v-for="(seat, index) in selectedSeats" :key="seat.seatId" class="passenger-form-item">
-          <h4>Seat: {{ getSeatLabel(seat.seatId) }}</h4>
-          <el-form-item label="Passenger Name">
-            <el-input v-model="seat.passengerName" placeholder="Enter passenger name" />
+        <div v-for="seat in selectedSeats" :key="seat.seatId" class="passenger-form-item">
+          <h4>{{ copy.seatLabel }}: {{ getSeatLabel(seat.seatId) }}</h4>
+          <el-form-item :label="copy.passengerName">
+            <el-input v-model="seat.passengerName" :placeholder="copy.passengerName" />
           </el-form-item>
         </div>
-        
+
         <el-form-item>
-          <el-button type="primary" @click="submitBooking">Confirm Booking</el-button>
+          <el-button type="primary" @click="submitBooking">{{ copy.confirm }}</el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -62,15 +67,24 @@ import { reserveSeats } from '../api/booking'
 import type { SeatAllocation, SeatPassengerPayload } from '../api/types'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '../store/user'
+import { useI18n } from '../locales'
 
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
+const { t, locale } = useI18n()
+const copy = computed(() => locale.value.booking)
+
 const scheduleId = Number(route.params.id)
 
 const loading = ref(true)
 const allAllocations = ref<SeatAllocation[]>([])
 const selectedSeats = ref<SeatPassengerPayload[]>([])
+
+const normalizeSeatNo = (seatNo: string) => {
+  const match = seatNo.match(/(\d+)([A-Za-z]?)/)
+  return { num: Number(match?.[1] ?? 0), suffix: match?.[2] ?? '' }
+}
 
 const seatsByCoach = computed(() => {
   const groups: Record<string, SeatAllocation[]> = {}
@@ -81,12 +95,20 @@ const seatsByCoach = computed(() => {
     }
     groups[coachNo].push(a)
   })
+  Object.entries(groups).forEach(([key, list]) => {
+    groups[key] = list.slice().sort((a, b) => {
+      const seatA = normalizeSeatNo(a.seat.seatNo)
+      const seatB = normalizeSeatNo(b.seat.seatNo)
+      if (seatA.num === seatB.num) return seatA.suffix.localeCompare(seatB.suffix)
+      return seatA.num - seatB.num
+    })
+  })
   return groups
 })
 
 onMounted(async () => {
   if (!scheduleId) {
-    ElMessage.error('Invalid schedule ID')
+    ElMessage.error(copy.value.invalidSchedule)
     router.push('/schedules')
     return
   }
@@ -94,7 +116,7 @@ onMounted(async () => {
     allAllocations.value = await getSeatAllocations(scheduleId)
   } catch (error) {
     console.error(error)
-    ElMessage.error('Failed to load seats')
+    ElMessage.error(copy.value.loadError)
   } finally {
     loading.value = false
   }
@@ -106,10 +128,10 @@ const isSelected = (seatId: number) => {
 
 const toggleSeat = (allocation: SeatAllocation) => {
   if (allocation.status !== 'AVAILABLE') return
-  
+
   const seatId = allocation.seat.id
   const index = selectedSeats.value.findIndex(s => s.seatId === seatId)
-  
+
   if (index > -1) {
     selectedSeats.value.splice(index, 1)
   } else {
@@ -120,41 +142,53 @@ const toggleSeat = (allocation: SeatAllocation) => {
   }
 }
 
+const seatStatusLabel = (allocation: SeatAllocation) => {
+  switch (allocation.status) {
+    case 'LOCKED':
+      return copy.value.statusLocked
+    case 'RESERVED':
+      return copy.value.statusReserved
+    case 'SOLD':
+      return copy.value.statusSold
+    default:
+      return copy.value.statusAvailable
+  }
+}
+
 const getSeatLabel = (seatId: number) => {
   const allocation = allAllocations.value.find(a => a.seat.id === seatId)
   if (allocation) {
-    return `Coach ${allocation.seat.coach.coachNo} - ${allocation.seat.seatNo}`
+    return `车厢 ${allocation.seat.coach.coachNo} - ${allocation.seat.seatNo}`
   }
-  return `Seat ${seatId}`
+  return `${t('booking.seatLabel')} ${seatId}`
 }
 
 const submitBooking = async () => {
-  // Validate names
   if (selectedSeats.value.some(s => !s.passengerName.trim())) {
-    ElMessage.warning('Please enter all passenger names')
+    ElMessage.warning(copy.value.nameWarning)
     return
   }
 
   if (!userStore.isAuthenticated || !userStore.user) {
-    ElMessage.warning('Please login first')
+    ElMessage.warning(copy.value.loginWarning)
     router.push('/login')
     return
   }
 
   try {
     const userId = userStore.user.id
-    
+
     await reserveSeats({
       userId,
       scheduleId,
       seats: selectedSeats.value
     })
-    
-    ElMessage.success('Booking confirmed!')
+
+    ElMessage.success(copy.value.success)
     router.push('/schedules')
   } catch (error) {
     console.error(error)
-    ElMessage.error('Booking failed')
+    ElMessage.error(copy.value.failed)
   }
 }
 </script>
@@ -162,42 +196,79 @@ const submitBooking = async () => {
 <style scoped>
 .booking-page {
   padding: 20px;
+  color: var(--text-primary);
 }
+
 .box-card {
   margin-bottom: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
 }
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--text-primary);
+}
+
 .coach-section {
   margin-bottom: 20px;
 }
+
+.legend {
+  margin-bottom: 10px;
+  color: var(--text-secondary);
+}
+
 .seats-grid {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
 }
+
 .seat-item {
-  width: 40px;
-  height: 40px;
-  border: 1px solid #ccc;
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: not-allowed;
-  background-color: #eee;
-  border-radius: 4px;
+  background-color: var(--surface-muted);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
 }
+
 .seat-item.available {
   cursor: pointer;
-  background-color: #fff;
-  border-color: #409eff;
-  color: #409eff;
+  background-color: var(--surface);
+  border-color: var(--accent);
+  color: var(--accent);
 }
+
+.seat-item.available:hover {
+  box-shadow: var(--shadow-subtle);
+  transform: translateY(-2px);
+}
+
 .seat-item.selected {
-  background-color: #409eff;
+  background-color: var(--accent);
   color: #fff;
 }
+
+.seat-item.locked,
+.seat-item.reserved,
+.seat-item.sold {
+  background-color: rgba(148, 163, 184, 0.25);
+  color: var(--text-secondary);
+}
+
 .passenger-form-item {
   margin-bottom: 20px;
   padding-bottom: 20px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--border-color);
 }
 </style>

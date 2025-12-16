@@ -3,18 +3,18 @@
     <el-card class="login-card">
       <template #header>
         <div class="card-header">
-          <span>Login</span>
+          <span>{{ copy.title }}</span>
         </div>
       </template>
       <el-form :model="form" label-width="120px">
-        <el-form-item label="Username">
+        <el-form-item :label="copy.username">
           <el-input v-model="form.username" />
         </el-form-item>
-        <el-form-item label="Password">
+        <el-form-item :label="copy.password">
           <el-input v-model="form.password" type="password" />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="onSubmit">Login</el-button>
+          <el-button type="primary" @click="onSubmit">{{ copy.submit }}</el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -22,13 +22,16 @@
 </template>
 
 <script setup lang="ts">
-import { reactive } from 'vue'
+import { reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '../store/user'
+import { useI18n } from '../locales'
 
 const router = useRouter()
 const userStore = useUserStore()
+const { locale } = useI18n()
+const copy = computed(() => locale.value.login)
 
 const form = reactive({
   username: '',
@@ -37,7 +40,7 @@ const form = reactive({
 
 const onSubmit = async () => {
   if (!form.username || !form.password) {
-    ElMessage.warning('Please enter username and password')
+    ElMessage.warning(copy.value.missing)
     return
   }
 
@@ -47,10 +50,10 @@ const onSubmit = async () => {
   })
 
   if (success) {
-    ElMessage.success('Login successful')
+    ElMessage.success(copy.value.success)
     router.push('/')
   } else {
-    ElMessage.error('Invalid credentials')
+    ElMessage.error(copy.value.failed)
   }
 }
 </script>
@@ -60,15 +63,19 @@ const onSubmit = async () => {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
-  background-color: #f0f2f5;
+  min-height: 80vh;
+  background: var(--page-bg);
+  color: var(--text-primary);
 }
 .login-card {
-  width: 400px;
+  width: 420px;
+  background: var(--surface);
+  border: 1px solid var(--border-color);
 }
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  color: var(--text-primary);
 }
 </style>
