@@ -5,7 +5,7 @@ import { ElMessage } from 'element-plus'
 import { useUserStore } from './store/user'
 import { useUiStore } from './store/ui'
 import { useI18n } from './locales'
-import { Moon, Sunny, UserFilled } from '@element-plus/icons-vue'
+import { Moon, Sunny } from '@element-plus/icons-vue'
 
 const userStore = useUserStore()
 const uiStore = useUiStore()
@@ -30,7 +30,6 @@ const handleLogout = () => {
 }
 
 const goLogin = () => router.push('/login')
-const goRegister = () => router.push('/register')
 </script>
 
 <template>
@@ -77,14 +76,9 @@ const goRegister = () => router.push('/register')
           <el-button v-if="userStore.user" type="danger" size="small" plain @click="handleLogout">
             {{ t('nav.logout') }}
           </el-button>
-          <div v-else class="guest-actions">
-            <el-button type="primary" size="small" @click="goLogin">
-              {{ t('nav.login') }}
-            </el-button>
-            <el-button type="success" size="small" plain @click="goRegister">
-              {{ t('nav.register') }}
-            </el-button>
-          </div>
+          <el-button v-else type="primary" size="small" @click="goLogin">
+            {{ t('nav.login') }}
+          </el-button>
         </div>
       </div>
     </header>
@@ -186,12 +180,6 @@ const goRegister = () => router.push('/register')
 
 .auth-area {
   display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.guest-actions {
-  display: inline-flex;
   align-items: center;
   gap: 8px;
 }

@@ -14,10 +14,7 @@
           <el-input v-model="form.password" type="password" />
         </el-form-item>
         <el-form-item>
-          <div class="action-row">
-            <el-button type="primary" @click="onSubmit">{{ copy.submit }}</el-button>
-            <el-button type="default" text @click="goRegister">{{ copy.goRegister }}</el-button>
-          </div>
+          <el-button type="primary" @click="onSubmit">{{ copy.submit }}</el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -82,11 +79,5 @@ const goRegister = () => router.push('/register')
   justify-content: space-between;
   align-items: center;
   color: var(--text-primary);
-}
-
-.action-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
 }
 </style>

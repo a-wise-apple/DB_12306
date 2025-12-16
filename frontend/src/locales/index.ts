@@ -13,7 +13,6 @@ const messages = {
       trading: '余票交易',
       admin: '管理员',
       login: '登录',
-      register: '注册',
       logout: '退出登录'
     },
     toolbar: {
@@ -110,25 +109,9 @@ const messages = {
       username: '用户名/证件号',
       password: '密码',
       submit: '登录',
-      goRegister: '没有账号？去注册',
       missing: '请填写用户名和密码',
       success: '登录成功',
       failed: '账号或密码错误'
-    },
-    register: {
-      title: '注册新用户',
-      subtitle: '填写实名信息后即可登录并预订车票',
-      name: '姓名',
-      idNumber: '证件号',
-      phone: '手机号',
-      email: '邮箱（可选）',
-      password: '密码',
-      submit: '提交注册',
-      backToLogin: '已有账号？前往登录',
-      missing: '请完整填写必填信息',
-      success: '注册成功，已自动登录',
-      conflict: '证件号或手机号已被注册',
-      failed: '注册失败，请稍后重试'
     },
     orders: {
       title: '我的订单',
@@ -231,7 +214,6 @@ const messages = {
       trading: 'Trading',
       admin: 'Admin',
       login: 'Login',
-      register: 'Register',
       logout: 'Logout'
     },
     toolbar: {
@@ -328,25 +310,9 @@ const messages = {
       username: 'Username / ID',
       password: 'Password',
       submit: 'Login',
-      goRegister: 'New here? Create an account',
       missing: 'Please enter username and password',
       success: 'Login successful',
       failed: 'Invalid credentials'
-    },
-    register: {
-      title: 'Create Account',
-      subtitle: 'Provide your ID details to start booking quickly.',
-      name: 'Full Name',
-      idNumber: 'ID Number',
-      phone: 'Phone',
-      email: 'Email (optional)',
-      password: 'Password',
-      submit: 'Register Now',
-      backToLogin: 'Already have an account? Login',
-      missing: 'Please fill in all required fields',
-      success: 'Registration successful, you are now signed in',
-      conflict: 'ID number or phone is already registered',
-      failed: 'Registration failed, please try again later'
     },
     orders: {
       title: 'My Orders',
