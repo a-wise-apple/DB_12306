@@ -1,38 +1,38 @@
 <template>
   <div class="trading-platform">
-    <h2>Ticket Trading Platform</h2>
-    
+    <h2>{{ copy.title }}</h2>
+
     <el-table :data="listings" style="width: 100%" v-loading="loading">
-      <el-table-column prop="trainNumber" label="Train" width="120" />
-      <el-table-column prop="departureTime" label="Departure Time" width="180">
+      <el-table-column prop="trainNumber" :label="copy.train" width="120" />
+      <el-table-column prop="departureTime" :label="copy.departure" width="180">
         <template #default="scope">
           {{ formatTime(scope.row.departureTime) }}
         </template>
       </el-table-column>
-      <el-table-column prop="seatInfo" label="Seat" />
-      <el-table-column prop="sellerName" label="Seller" width="120" />
-      <el-table-column prop="price" label="Price" width="120">
+      <el-table-column prop="seatInfo" :label="copy.seat" />
+      <el-table-column prop="sellerName" :label="copy.seller" width="120" />
+      <el-table-column prop="price" :label="copy.price" width="120">
         <template #default="scope">
           ¥{{ scope.row.price }}
         </template>
       </el-table-column>
-      <el-table-column label="Actions" width="180">
+      <el-table-column :label="copy.actions" width="180">
         <template #default="scope">
-          <el-button 
+          <el-button
             v-if="!isMyListing(scope.row)"
-            type="primary" 
-            size="small" 
+            type="primary"
+            size="small"
             @click="handleBuy(scope.row)"
           >
-            Buy
+            {{ copy.buy }}
           </el-button>
-          <el-button 
+          <el-button
             v-else
-            type="danger" 
-            size="small" 
+            type="danger"
+            size="small"
             @click="handleCancel(scope.row)"
           >
-            Cancel
+            {{ copy.cancel }}
           </el-button>
         </template>
       </el-table-column>
@@ -41,21 +41,24 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { getListings, buyListing, cancelListing, type TicketListing } from '../api/trading';
 import { useUserStore } from '../store/user';
+import { useI18n } from '../locales'
 
 const listings = ref<TicketListing[]>([]);
 const loading = ref(false);
 const userStore = useUserStore();
+const { locale } = useI18n()
+const copy = computed(() => locale.value.trading)
 
 const fetchListings = async () => {
   loading.value = true;
   try {
     listings.value = await getListings();
   } catch (error) {
-    ElMessage.error('Failed to load listings');
+    ElMessage.error(copy.value.loadFailed);
   } finally {
     loading.value = false;
   }
@@ -71,51 +74,51 @@ const isMyListing = (listing: TicketListing) => {
 
 const handleBuy = async (listing: TicketListing) => {
   if (!userStore.user) {
-    ElMessage.warning('Please login first');
+    ElMessage.warning(copy.value.needLogin);
     return;
   }
 
   try {
     await ElMessageBox.confirm(
-      `Are you sure you want to buy this ticket for ¥${listing.price}?`,
-      'Confirm Purchase',
+      copy.value.confirmBuy.replace('{price}', String(listing.price)),
+      copy.value.confirmTitle,
       {
-        confirmButtonText: 'Buy',
-        cancelButtonText: 'Cancel',
+        confirmButtonText: copy.value.buyAction,
+        cancelButtonText: copy.value.buyCancel,
         type: 'info',
       }
     );
 
     await buyListing(listing.listingId, userStore.user.id);
-    ElMessage.success('Ticket purchased successfully!');
-    fetchListings(); // Refresh list
+    ElMessage.success(copy.value.buySuccess);
+    fetchListings();
   } catch (error) {
     if (error !== 'cancel') {
-      ElMessage.error('Failed to buy ticket');
+      ElMessage.error(copy.value.buyFailed);
     }
   }
 };
 
 const handleCancel = async (listing: TicketListing) => {
   if (!userStore.user) return;
-  
+
   try {
     await ElMessageBox.confirm(
-      'Are you sure you want to remove this listing?',
-      'Confirm Cancellation',
+      copy.value.removeConfirm,
+      copy.value.removeTitle,
       {
-        confirmButtonText: 'Yes',
-        cancelButtonText: 'No',
+        confirmButtonText: copy.value.removeYes,
+        cancelButtonText: copy.value.removeNo,
         type: 'warning',
       }
     );
 
     await cancelListing(listing.listingId, userStore.user.id);
-    ElMessage.success('Listing removed');
+    ElMessage.success(copy.value.removeSuccess);
     fetchListings();
   } catch (error) {
     if (error !== 'cancel') {
-      ElMessage.error('Failed to remove listing');
+      ElMessage.error(copy.value.removeFailed);
     }
   }
 };
@@ -128,5 +131,6 @@ onMounted(() => {
 <style scoped>
 .trading-platform {
   padding: 20px;
+  color: var(--text-primary);
 }
 </style>
