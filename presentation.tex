@@ -1,0 +1,296 @@
+\documentclass{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage{ctex} % Support for Chinese characters
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref} % Ensure hyperref is loaded
+
+% Setup hyperref for Chinese bookmarks
+\hypersetup{
+    pdfencoding=auto,
+    unicode=true,
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=blue
+}
+
+% Theme selection
+\usetheme{Madrid}
+\usecolortheme{default}
+
+% Code listing settings
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+% Title Page Information
+\title{铁路售票系统项目介绍}
+\author{陈治杰 曾灵杰 刘子鸣}
+\date{\today}
+
+\begin{document}
+
+\frame{\titlepage}
+
+\section{项目需求 (Project Requirements)}
+
+\begin{frame}{项目需求}
+    本项目旨在构建一个功能完善的铁路售票系统（类似 12306），支持用户购票、退票、改签以及管理员对车次、车站、时刻表的管理。
+
+    \begin{block}{核心功能模块}
+        \begin{itemize}
+            \item \textbf{用户模块}: 用户注册、登录、个人信息管理。
+            \item \textbf{票务模块}: 车票查询、预订、支付、退票、改签。
+            \item \textbf{车次管理}: 列车信息管理、车厢管理、座位管理。
+            \item \textbf{时刻表管理}: 列车时刻表制定、经停站管理。
+            \item \textbf{运营管理}: 车站管理、员工管理、检票（进站/出站）。
+            \item \textbf{交易平台}: 二手票交易或票务转让功能 (\texttt{ticket\_listing})。
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+\begin{frame}{技术栈}
+    \begin{itemize}
+        \item \textbf{后端}: Java 21, Spring Boot 3.3.5, Spring Data JPA, Spring Security, MySQL.
+        \item \textbf{前端}: Vue.js, TypeScript, Vite.
+        \item \textbf{数据库}: MySQL 8.0+.
+    \end{itemize}
+\end{frame}
+
+\section{数据库设计 (Database Design)}
+
+\begin{frame}{数据库设计 - 基础数据表}
+    系统采用关系型数据库 MySQL，主要包含以下核心数据表：
+    \begin{itemize}
+        \item \textbf{station (车站表)}: 存储车站的基本信息（代码、名称、城市）。
+        \item \textbf{train (列车表)}: 存储列车的基本信息（车次号、列车类型）。
+        \item \textbf{coach (车厢表)}: 定义列车的车厢组成、类型及座位数。
+        \item \textbf{seat (座位表)}: 定义车厢内的具体座位信息。
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{数据库设计 - 调度与时刻表}
+    \begin{itemize}
+        \item \textbf{train\_schedule (列车时刻表)}: 定义某次列车在具体日期的发车计划及状态。
+        \item \textbf{schedule\_stop (经停站表)}: 定义列车时刻表的具体停靠站点、到达及出发时间。
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{数据库设计 - 订单与交易}
+    \begin{itemize}
+        \item \textbf{user\_account (用户表)}: 存储用户信息及角色。
+        \item \textbf{booking\_order (订单表)}: 记录用户的购票订单及状态（待支付、已支付、已取消等）。
+        \item \textbf{seat\_allocation (座位分配表)}: 管理具体时刻表的座位占用情况，防止超卖。
+        \item \textbf{ticket (车票表)}: 生成的实际乘车凭证，关联订单、座位及乘客。
+        \item \textbf{payment (支付表)}: 记录支付流水。
+        \item \textbf{ticket\_listing (票务挂牌表)}: 用于票务转让或二手交易。
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{数据库设计 - 运营与检票}
+    \begin{itemize}
+        \item \textbf{employee (员工表)}: 车站工作人员信息。
+        \item \textbf{checkin (检票记录表)}: 记录乘客进出站的检票日志。
+    \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{数据库模式 (Database Schema) - 基础信息}
+\begin{lstlisting}[language=SQL]
+CREATE TABLE station (
+  station_id INT PRIMARY KEY AUTO_INCREMENT,
+  code VARCHAR(16) NOT NULL UNIQUE,
+  name VARCHAR(128) NOT NULL,
+  city VARCHAR(128) NOT NULL
+);
+
+CREATE TABLE train (
+  train_id INT PRIMARY KEY AUTO_INCREMENT,
+  train_no VARCHAR(32) NOT NULL UNIQUE,
+  train_type VARCHAR(32) NOT NULL
+);
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{数据库模式 (Database Schema) - 时刻表}
+\begin{lstlisting}[language=SQL]
+CREATE TABLE train_schedule (
+  schedule_id INT PRIMARY KEY AUTO_INCREMENT,
+  train_id INT NOT NULL,
+  depart_date DATE NOT NULL,
+  status ENUM('PLANNED', 'OPEN', 'DEPARTED', 'ARRIVED', 'CANCELLED') NOT NULL DEFAULT 'PLANNED',
+  CONSTRAINT fk_schedule_train FOREIGN KEY (train_id) REFERENCES train (train_id)
+);
+\end{lstlisting}
+\end{frame}
+
+\section{接口文档 (API Documentation)}
+
+\begin{frame}{接口文档}
+    后端提供 RESTful API 供前端调用，主要接口如下：
+    \begin{block}{认证模块 (Auth)}
+        \begin{itemize}
+            \item \texttt{POST /api/auth/login}: 用户登录。
+            \item \texttt{POST /api/auth/register}: 用户注册。
+        \end{itemize}
+    \end{block}
+    \begin{block}{预订模块 (Booking)}
+        \begin{itemize}
+            \item \texttt{GET /api/bookings/user/\{userId\}}: 获取指定用户的订单列表。
+            \item \texttt{POST /api/bookings/reserve}: 发起座位预订请求，创建订单。
+            \item \texttt{POST /api/bookings/\{id\}/cancel}: 取消指定订单。
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+\begin{frame}{接口文档 (续)}
+    \begin{block}{车次与时刻表 (Schedule \& Train)}
+        \begin{itemize}
+            \item \texttt{GET /api/schedules/search}: 根据出发地、目的地和日期查询车次。
+            \item \texttt{GET /api/trains/\{id\}}: 获取列车详情。
+        \end{itemize}
+    \end{block}
+    \begin{block}{车站管理 (Station)}
+        \begin{itemize}
+            \item \texttt{GET /api/stations}: 获取所有车站列表。
+            \item \texttt{POST /api/stations}: 新增车站（管理员）。
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+\section{关键功能代码实现}
+
+\begin{frame}[fragile]{订单服务 (BookingService)}
+    \texttt{BookingService} 负责处理订单的核心业务逻辑。
+\begin{lstlisting}[language=Java]
+@Service
+@RequiredArgsConstructor
+@Transactional
+public class BookingService {
+    private final BookingOrderRepository bookingOrderRepository;
+
+    public BookingOrder createOrder(BookingOrder order) {
+        order.setStatus(OrderStatus.PENDING);
+        return bookingOrderRepository.save(order);
+    }
+    
+    public void cancelOrder(Integer orderId) {
+        // ... implementation details
+    }
+}
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{订单控制器 (BookingController)}
+\begin{lstlisting}[language=Java]
+@RestController
+@RequestMapping("/api/bookings")
+@RequiredArgsConstructor
+public class BookingController {
+    private final BookingService bookingService;
+
+    @PostMapping("/reserve")
+    public ResponseEntity<BookingOrder> reserveSeats(@Valid @RequestBody ReserveSeatsRequest request) {
+        BookingOrder order = new BookingOrder();
+        return ResponseEntity.ok(bookingService.createOrder(order));
+    }
+}
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{时刻表服务 (ScheduleService)}
+\begin{lstlisting}[language=Java]
+@Service
+public class ScheduleService {
+    public void createSchedule(CreateScheduleRequest request) {
+        // Create Schedule
+        TrainSchedule schedule = new TrainSchedule();
+        // ...
+        trainScheduleRepository.save(schedule);
+
+        // Create Stops, Coaches, Seats
+        // ...
+    }
+}
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{票务交易服务 (TradingService)}
+\begin{lstlisting}[language=Java]
+@Service
+public class TradingService {
+    @Transactional
+    public void createListing(Integer userId, Integer orderId, BigDecimal price) {
+        // Check ownership and status
+        // Create listing
+    }
+
+    @Transactional
+    public void buyListing(Integer buyerId, Integer listingId) {
+        // Transfer ownership
+        // Update ticket passenger name
+    }
+}
+\end{lstlisting}
+\end{frame}
+
+\section{前端实现 (Frontend Implementation)}
+
+\begin{frame}[fragile]{选座与预订页面 (Booking.vue)}
+\begin{lstlisting}[language=JavaScript]
+// Load seats and group by coach
+const seatsByCoach = computed(() => {
+  const groups: Record<string, SeatAllocation[]> = {}
+  allAllocations.value.forEach(a => {
+    const coachNo = a.seat.coach.coachNo
+    if (!groups[coachNo]) {
+      groups[coachNo] = []
+    }
+    groups[coachNo].push(a)
+  })
+  return groups
+})
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{交易平台页面 (TradingPlatform.vue)}
+\begin{lstlisting}[language=JavaScript]
+const handleBuy = async (listing: TicketListing) => {
+  if (!userStore.user) {
+    ElMessage.warning('Please login first');
+    return;
+  }
+  // Confirm and buy logic
+  await buyListing(listing.listingId, userStore.user.id);
+};
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}
+    \centering
+    \Huge 谢谢观看！\\
+    \large Q \& A
+\end{frame}
+
+\end{document}

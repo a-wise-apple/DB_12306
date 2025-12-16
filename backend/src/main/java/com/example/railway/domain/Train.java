@@ -1,5 +1,6 @@
 package com.example.railway.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -14,6 +15,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "train")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Train {
 
     @Id

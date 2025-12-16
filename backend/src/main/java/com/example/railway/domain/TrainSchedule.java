@@ -1,6 +1,7 @@
 package com.example.railway.domain;
 
 import com.example.railway.domain.enumeration.ScheduleStatus;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -21,6 +22,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "train_schedule")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class TrainSchedule {
 
     @Id
@@ -28,7 +30,7 @@ public class TrainSchedule {
     @Column(name = "schedule_id")
     private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "train_id")
     private Train train;
 

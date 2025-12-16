@@ -1,9 +1,15 @@
 -- seed_data.sql
 -- Populates the railway booking schema with baseline reference data for local development.
 
-USE railway_booking;
+USE `12306`;
 
 START TRANSACTION;
+
+INSERT INTO user_account (user_id, name, password_hash, id_number, phone, role) VALUES
+  (1, 'admin', 'password', 'ADMIN001', '13800000000', 'ADMIN'),
+  (2, 'alice', 'password', 'USER001', '13900000000', 'USER'),
+  (3, 'carol', 'password', 'EMP001', '13700000000', 'EMPLOYEE')
+ON DUPLICATE KEY UPDATE name = VALUES(name), password_hash = VALUES(password_hash), role = VALUES(role);
 
 INSERT INTO station (station_id, code, name, city) VALUES
   (1, 'SHG', 'Shanghai South', 'Shanghai'),
@@ -83,5 +89,9 @@ ON DUPLICATE KEY UPDATE role = VALUES(role), station_id = VALUES(station_id), us
 INSERT INTO checkin (checkin_id, ticket_id, employee_id, station_id, checkin_time, checkin_type) VALUES
   (1, 1, 1, 1, '2025-12-20 07:40:00', 'ENTRY')
 ON DUPLICATE KEY UPDATE checkin_time = VALUES(checkin_time), checkin_type = VALUES(checkin_type);
+
+INSERT INTO ticket_listing (listing_id, order_id, seller_id, price, status, created_at) VALUES
+  (1, 1, 2, 280.00, 'ACTIVE', '2025-12-12 10:00:00')
+ON DUPLICATE KEY UPDATE price = VALUES(price), status = VALUES(status);
 
 COMMIT;

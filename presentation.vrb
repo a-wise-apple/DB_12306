@@ -1,0 +1,11 @@
+\frametitle{交易平台页面 (TradingPlatform.vue)}
+\begin{lstlisting}[language=JavaScript]
+const handleBuy = async (listing: TicketListing) => {
+  if (!userStore.user) {
+    ElMessage.warning('Please login first');
+    return;
+  }
+  // Confirm and buy logic
+  await buyListing(listing.listingId, userStore.user.id);
+};
+\end{lstlisting}

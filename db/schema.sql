@@ -1,11 +1,11 @@
 -- schema.sql
 -- Creates the railway booking database schema for local MySQL deployment.
 
-CREATE DATABASE IF NOT EXISTS railway_booking
+CREATE DATABASE IF NOT EXISTS `12306`
   DEFAULT CHARACTER SET utf8mb4
   DEFAULT COLLATE utf8mb4_unicode_ci;
 
-USE railway_booking;
+USE `12306`;
 
 -- Drop tables if they already exist to allow idempotent schema reloads.
 SET FOREIGN_KEY_CHECKS = 0;
@@ -121,7 +121,7 @@ CREATE TABLE booking_order (
   order_id INT PRIMARY KEY AUTO_INCREMENT,
   user_id INT NOT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  status ENUM('PENDING', 'CONFIRMED', 'CANCELLED', 'REFUNDED') NOT NULL DEFAULT 'PENDING',
+  status ENUM('PENDING', 'PAID', 'CONFIRMED', 'CANCELLED', 'REFUNDED') NOT NULL DEFAULT 'PENDING',
   total_amount DECIMAL(10, 2) NOT NULL DEFAULT 0,
   CONSTRAINT fk_order_user FOREIGN KEY (user_id)
     REFERENCES user_account (user_id)
@@ -232,4 +232,21 @@ CREATE TABLE checkin (
     ON UPDATE CASCADE
     ON DELETE RESTRICT,
   INDEX idx_checkin_ticket (ticket_id)
+) ENGINE = InnoDB;
+
+CREATE TABLE ticket_listing (
+  listing_id INT PRIMARY KEY AUTO_INCREMENT,
+  seller_id INT NOT NULL,
+  order_id INT NOT NULL,
+  price DECIMAL(10, 2) NOT NULL,
+  status VARCHAR(32) NOT NULL DEFAULT 'ACTIVE',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_listing_seller FOREIGN KEY (seller_id)
+    REFERENCES user_account (user_id)
+    ON UPDATE CASCADE
+    ON DELETE RESTRICT,
+  CONSTRAINT fk_listing_order FOREIGN KEY (order_id)
+    REFERENCES booking_order (order_id)
+    ON UPDATE CASCADE
+    ON DELETE RESTRICT
 ) ENGINE = InnoDB;

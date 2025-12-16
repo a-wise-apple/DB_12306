@@ -1,5 +1,6 @@
 package com.example.railway.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -17,6 +18,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "coach")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Coach {
 
     @Id
@@ -26,6 +28,7 @@ public class Coach {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "schedule_id")
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private TrainSchedule schedule;
 
     @Column(name = "coach_no", nullable = false, length = 16)
