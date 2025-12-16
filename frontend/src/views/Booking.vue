@@ -53,9 +53,9 @@
 
       <el-form label-width="120px">
         <div v-for="seat in selectedSeats" :key="seat.seatId" class="passenger-form-item">
-          <h4>{{ copy.seatLabel }}: {{ getSeatLabel(seat.seatId) }}</h4>
-          <el-form-item :label="copy.passengerName">
-            <el-input v-model="seat.passengerName" :placeholder="copy.passengerName" />
+          <h4>Seat: {{ getSeatLabel(seat.seatId) }}</h4>
+          <el-form-item label="Passenger Name">
+            <el-input v-model="seat.passengerName" placeholder="Enter passenger name" />
           </el-form-item>
         </div>
 
