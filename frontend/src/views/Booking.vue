@@ -39,7 +39,7 @@
       </template>
       
       <el-form label-width="120px">
-        <div v-for="(seat, index) in selectedSeats" :key="seat.seatId" class="passenger-form-item">
+        <div v-for="seat in selectedSeats" :key="seat.seatId" class="passenger-form-item">
           <h4>Seat: {{ getSeatLabel(seat.seatId) }}</h4>
           <el-form-item label="Passenger Name">
             <el-input v-model="seat.passengerName" placeholder="Enter passenger name" />
