@@ -79,7 +79,10 @@ const messages = {
       statusReserved: '已预订',
       statusSold: '已售出',
       statusAvailable: '可选',
-      selectHint: '单击可选择座位，再次点击可取消。'
+      selectHint: '单击可选择座位，再次点击可取消。',
+      coachTitle: '车厢 {coach}（{type}）',
+      seatDisplay: '车厢 {coach} - 座位 {seat}',
+      unknownCoachType: '未知车型'
     },
     schedule: {
       title: '车次查询',
@@ -277,7 +280,10 @@ const messages = {
       statusReserved: 'Reserved',
       statusSold: 'Sold',
       statusAvailable: 'Available',
-      selectHint: 'Click to select a seat; click again to unselect.'
+      selectHint: 'Click to select a seat; click again to unselect.',
+      coachTitle: 'Coach {coach} ({type})',
+      seatDisplay: 'Coach {coach} - Seat {seat}',
+      unknownCoachType: 'Unknown type'
     },
     schedule: {
       title: 'Schedule Search',

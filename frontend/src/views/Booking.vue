@@ -11,9 +11,17 @@
       <div v-if="loading" class="loading">{{ copy.loading }}</div>
 
       <div v-else class="coach-container">
-        <div class="legend">{{ copy.selectHint }}</div>
+        <div class="legend">
+          <span>{{ copy.selectHint }}</span>
+          <div class="legend__chips">
+            <span class="chip available">{{ copy.statusAvailable }}</span>
+            <span class="chip locked">{{ copy.statusLocked }}</span>
+            <span class="chip reserved">{{ copy.statusReserved }}</span>
+            <span class="chip sold">{{ copy.statusSold }}</span>
+          </div>
+        </div>
         <div v-for="(seats, coachNo) in seatsByCoach" :key="coachNo" class="coach-section">
-          <h3>车厢 {{ coachNo }} ({{ seats[0]?.seat.coach.coachType }})</h3>
+          <h3>{{ coachTitle(coachNo, seats[0]?.seat.coach.coachType) }}</h3>
           <div class="seats-grid">
             <div
               v-for="allocation in seats"
@@ -155,10 +163,17 @@ const seatStatusLabel = (allocation: SeatAllocation) => {
   }
 }
 
+const coachTitle = (coachNo: string | number, type?: string) => {
+  return t('booking.coachTitle', { coach: coachNo, type: type || copy.value.unknownCoachType })
+}
+
 const getSeatLabel = (seatId: number) => {
   const allocation = allAllocations.value.find(a => a.seat.id === seatId)
   if (allocation) {
-    return `车厢 ${allocation.seat.coach.coachNo} - ${allocation.seat.seatNo}`
+    return t('booking.seatDisplay', {
+      coach: allocation.seat.coach.coachNo,
+      seat: allocation.seat.seatNo
+    })
   }
   return `${t('booking.seatLabel')} ${seatId}`
 }
@@ -219,6 +234,39 @@ const submitBooking = async () => {
 
 .legend {
   margin-bottom: 10px;
+  color: var(--text-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.legend__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  background: var(--surface);
+}
+
+.chip.available {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.chip.locked,
+.chip.reserved,
+.chip.sold {
+  background-color: rgba(148, 163, 184, 0.25);
   color: var(--text-secondary);
 }
 
